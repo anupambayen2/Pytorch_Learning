@@ -1,7 +1,7 @@
 import pandas as pd
 from torch import nn
 import torch
-import sys
+import sys,os
 
 car_data = pd.read_csv(r'/Users/anupambayen/projects/deep_learning/Master_Pytorch/Jennis_Seemann_Course/Day-3-4/Car_Price/data/used_cars.csv', low_memory=False)
 
@@ -19,9 +19,8 @@ milage = milage.str.replace(',','')
 milage = milage.str.replace(' mi.','')
 milage = milage.astype(int)
 
-# print(price)
-# print(age)
-# print(milage)
+if not os.path.isdir("./model"):
+    os.mkdir("./model")
 
 # Torch : creating X and y data as tensors
 
@@ -33,7 +32,9 @@ X_mean = X.mean(axis=0)
 X_std = X.std(axis=0)
 
 X = (X-X_mean)/X_std
-# print(X)
+
+torch.save(X_mean,"./model/X_mean.pt")
+torch.save(X_std,"./model/X_std.pt")
 
 # sys.exit()
 
@@ -43,7 +44,9 @@ y_mean = y.mean()
 y_std = y.std()
 y = (y- y_mean)/y_std
 
-# sys.exit()
+
+torch.save(y_mean,"./model/y_mean.pt")
+torch.save(y_std,"./model/y_std.pt")
 
 
 model = nn.Linear(2,1)
@@ -58,18 +61,7 @@ for i in range(0,1000):
     loss.backward()
     optimizer.step()
 
-    if i % 100 ==0:
-        print(loss)
-
-    # if i % 100 ==0:
-    #     print(model.bias)
-    #     print(model.weight)
+  
+torch.save(model.state_dict(),"./model/model.pt")
 
 
-X_test = torch.tensor([
-    [10,100000]
-])
-
-
-prediction = model((X_test - X_mean)/X_std)
-print(prediction * y_std + y_mean)
