@@ -10,6 +10,10 @@ price = price.str.replace('$','')
 price = price.str.replace(',','')
 price = price.astype(int)
 
+car_data['accident_flag'] = car_data['accident'].apply(
+    lambda x: 1 if str(x).strip().lower() == 'at least 1 accident or damage reported' else 0
+)
+
 
 
 age = car_data['model_year'].max() - car_data['model_year']
@@ -19,6 +23,9 @@ milage = milage.str.replace(',','')
 milage = milage.str.replace(' mi.','')
 milage = milage.astype(int)
 
+accident = car_data['accident_flag']
+accident = accident.astype(int)
+
 if not os.path.isdir("./model"):
     os.mkdir("./model")
 
@@ -26,7 +33,8 @@ if not os.path.isdir("./model"):
 
 X = torch.column_stack([
     torch.tensor(age, dtype=torch.float32),
-    torch.tensor(milage, dtype=torch.float32)
+    torch.tensor(milage, dtype=torch.float32),
+    torch.tensor(accident,dtype=torch.float32)
 ])
 X_mean = X.mean(axis=0)
 X_std = X.std(axis=0)
@@ -49,7 +57,7 @@ torch.save(y_mean,"./model/y_mean.pt")
 torch.save(y_std,"./model/y_std.pt")
 
 
-model = nn.Linear(2,1)
+model = nn.Linear(3,1)
 loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
@@ -60,6 +68,7 @@ for i in range(0,1000):
     loss = loss_fn(outputs,y)
     loss.backward()
     optimizer.step()
+    # print(loss)
 
   
 torch.save(model.state_dict(),"./model/model.pt")
